@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mara Antibiótico Watch</title>
+<style>
+  :root { --bg:#fff4e0; --fg:#2b1d0e; --accent:#ff3d7f; --card:#ffffff; --muted:#7a6650; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg:#1d1420; --fg:#fbeff5; --accent:#ff5c95; --card:#2c2030; --muted:#b9a5b8; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100dvh; background:var(--bg); color:var(--fg);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; text-align:center;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px 16px; }
+  h1 { font-size:1.6rem; margin:.2em 0; }
+  .sub { color:var(--muted); margin:0 0 1.2em; }
+  .pill { font-size:5rem; animation:wobble 1.4s ease-in-out infinite; display:inline-block; }
+  @keyframes wobble { 0%,100%{transform:rotate(-12deg)} 50%{transform:rotate(12deg) scale(1.1)} }
+  .clock { display:flex; gap:8px; justify-content:center; margin:1em 0; }
+  .clock div { background:var(--card); border-radius:14px; padding:12px 8px; min-width:78px;
+    box-shadow:0 4px 0 var(--accent); }
+  .clock b { display:block; font-size:2.2rem; font-variant-numeric:tabular-nums; }
+  .clock small { color:var(--muted); font-size:.75rem; text-transform:uppercase; }
+  .status { background:var(--card); border-radius:14px; padding:14px; max-width:360px; width:100%; margin:.5em 0; }
+  .bar { height:14px; background:#0002; border-radius:7px; overflow:hidden; margin-top:8px; }
+  .bar i { display:block; height:100%; background:var(--accent); transition:width 1s; }
+  .quote { font-style:italic; min-height:3em; max-width:360px; margin:1em 0; }
+  button { font:inherit; font-size:1.1rem; border:0; border-radius:999px; padding:14px 22px;
+    background:var(--accent); color:#fff; cursor:pointer; }
+  button:active { transform:scale(.95); }
+  .done .pill { animation:none; }
+  footer { color:var(--muted); font-size:.75rem; margin-top:2em; }
+</style>
+</head>
+<body>
+  <div class="pill" id="emoji" aria-hidden="true">💊</div>
+  <h1>Contagem decrescente oficial:<br>fim do antibiótico da Mara Vasconcelos</h1>
+  <p class="sub" id="sub">Departamento de Monitorização Intestinal 🚽</p>
+
+  <div class="clock" role="timer" aria-live="off">
+    <div><b id="h">00</b><small>horas</small></div>
+    <div><b id="m">00</b><small>minutos</small></div>
+    <div><b id="s">00</b><small>segundos</small></div>
+  </div>
+
+  <div class="status">
+    <strong>Estado da barriga:</strong> <span id="state">💩 Crítico</span>
+    <div class="bar"><i id="bar" style="width:0%"></i></div>
+    <small id="pct">0% recuperada</small>
+  </div>
+
+  <p class="quote" id="quote"></p>
+  <button id="btn" type="button">Enviar apoio moral 🫂</button>
+
+  <footer>Fonte: confia. Não é aconselhamento médico, é bullying carinhoso.</footer>
+
+<script>
+  const end = new Date("2026-11-10T00:00:00Z"); // meia-noite em Lisboa (WET = UTC) = Mara curada
+  const start = new Date(end - 864e5);
+
+  const quotes = [
+    "“Hoje a casa de banho é a minha melhor amiga.” — Mara, provavelmente",
+    "A barriga dela neste momento: 🌋",
+    "As bactérias boas estão a fazer as malas para voltar.",
+    "Amanhã: comida picante. Hoje: chá e orações.",
+    "Não perguntem como ela está. Ela está ocupada.",
+    "Status: modo avião intestinal ✈️",
+    "Último comprimido = boss final derrotado 🏆",
+    "O probiótico mandou dizer que vem a caminho."
+  ];
+  const states = [[25,"💩 Crítico"],[50,"🌪️ Turbulência"],[75,"😬 Instável mas digna"],[99,"🙂 Quase lá"],[101,"🎉 CURADA"]];
+  const pad = n => String(n).padStart(2, "0");
+
+  function tick() {
+    const left = Math.max(0, end - Date.now());
+    const pct = Math.min(100, Math.floor((Date.now() - start) / (end - start) * 100));
+    h.textContent = pad(Math.floor(left / 36e5));
+    m.textContent = pad(Math.floor(left / 6e4) % 60);
+    s.textContent = pad(Math.floor(left / 1e3) % 60);
+    bar.style.width = pct + "%";
+    pctEl.textContent = pct + "% recuperada";
+    state.textContent = left ? states.find(([lim]) => pct < lim)[1] : "🎉 CURADA";
+    if (!left) {
+      document.body.classList.add("done");
+      emoji.textContent = "🎉";
+      sub.textContent = "A Mara está oficialmente boa. Podem voltar a convidá-la para jantar.";
+      clearInterval(timer);
+    }
+  }
+  const pctEl = document.getElementById("pct");
+  const quote = document.getElementById("quote");
+  let qi = 0;
+  const nextQuote = () => { quote.textContent = quotes[qi++ % quotes.length]; };
+  nextQuote(); setInterval(nextQuote, 5000);
+
+  let hugs = 0;
+  btn.onclick = () => {
+    hugs++;
+    btn.textContent = hugs < 5 ? `Apoio enviado ×${hugs} 🫂` : `×${hugs} — ela agradece, mas continua na casa de banho 🚽`;
+    navigator.vibrate?.(80);
+  };
+
+  tick(); const timer = setInterval(tick, 1000);
+</script>
+</body>
+</html>
